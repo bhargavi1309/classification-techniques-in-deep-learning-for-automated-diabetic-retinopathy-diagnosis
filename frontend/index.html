@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="AI-powered Diabetic Retinopathy diagnosis tool using deep learning for automated retinal fundus image classification." />
+    <title>RetinaAI — Diabetic Retinopathy Diagnosis</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+    <!-- ── Sidebar Navigation ─────────────────────────────────────── -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" />
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                </svg>
+            </div>
+            <span class="brand-text">RetinaAI</span>
+        </div>
+
+        <ul class="nav-list">
+            <li><a href="#" class="nav-item active" data-page="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Dashboard
+                </a></li>
+            <li><a href="#" class="nav-item" data-page="upload">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Classify Image
+                </a></li>
+            <li><a href="#" class="nav-item" data-page="history">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3h18v4H3z" />
+                        <path d="M3 9h18v4H3z" />
+                        <path d="M3 15h18v4H3z" />
+                    </svg>
+                    History
+                </a></li>
+            <li><a href="#" class="nav-item" data-page="patients">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                    </svg>
+                    Patients
+                </a></li>
+            <li><a href="#" class="nav-item" data-page="about">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    About
+                </a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="api-status" id="apiStatus">
+                <span class="status-dot"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── Mobile Header ──────────────────────────────────────────── -->
+    <header class="mobile-header">
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+        <span class="mobile-brand">RetinaAI</span>
+    </header>
+
+    <!-- ── Main Content ───────────────────────────────────────────── -->
+    <main class="main-content" id="mainContent">
+
+        <!-- Dashboard Page -->
+        <section class="page active" id="page-dashboard">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Overview of DR screening activity and grade distribution</p>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card" id="statTotal">
+                    <div class="stat-icon teal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11l3 3L22 4" />
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="valTotalScans">—</div>
+                    <div class="stat-label">Total Scans</div>
+                </div>
+                <div class="stat-card" id="statPatients">
+                    <div class="stat-icon purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="valTotalPatients">—</div>
+                    <div class="stat-label">Patients</div>
+                </div>
+                <div class="stat-card" id="statReferral">
+                    <div class="stat-icon orange">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path
+                                d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="valReferralRate">—</div>
+                    <div class="stat-label">Referral Rate</div>
+                </div>
+                <div class="stat-card" id="statNoDR">
+                    <div class="stat-icon green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </div>
+                    <div class="stat-value" id="valNoDR">—</div>
+                    <div class="stat-label">No DR Detected</div>
+                </div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3 class="chart-title">Grade Distribution</h3>
+                    <div class="chart-wrap"><canvas id="gradeChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Weekly Scans</h3>
+                    <div class="chart-wrap"><canvas id="weeklyChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="recent-card">
+                <h3 class="chart-title">Recent Diagnoses</h3>
+                <div class="recent-list" id="recentList">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload / Classify Page -->
+        <section class="page" id="page-upload">
+            <div class="page-header">
+                <h1 class="page-title">Classify Retinal Image</h1>
+                <p class="page-subtitle">Upload a fundus photograph for AI-powered DR grading</p>
+            </div>
+
+            <div class="upload-layout">
+                <!-- Left: Upload zone -->
+                <div class="upload-panel">
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-zone-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                        </div>
+                        <p class="drop-zone-title">Drag & Drop Fundus Image</p>
+                        <p class="drop-zone-sub">or click to browse — JPG, PNG, BMP, TIFF</p>
+                        <input type="file" id="fileInput" accept="image/*" hidden />
+                    </div>
+
+                    <div class="image-preview-wrap" id="imagePreviewWrap" style="display:none">
+                        <img id="imagePreview" alt="Fundus preview" class="image-preview" />
+                        <button class="btn-remove-img" id="removeImage" title="Remove">✕</button>
+                    </div>
+                </div>
+
+                <!-- Right: Patient form -->
+                <div class="form-panel glass-card">
+                    <h3 class="form-title">Patient Details</h3>
+
+                    <div class="form-group">
+                        <label class="form-label" for="selectPatient">Select Existing Patient</label>
+                        <select class="form-control" id="selectPatient">
+                            <option value="">— New / Unregistered —</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="quickNameGroup">
+                        <label class="form-label" for="quickName">Patient Name (quick entry)</label>
+                        <input class="form-control" id="quickName" type="text" placeholder="e.g. Ravi Kumar" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Eye Examined</label>
+                        <div class="btn-group-eye">
+                            <button class="eye-btn active" data-eye="Right">Right</button>
+                            <button class="eye-btn" data-eye="Left">Left</button>
+                            <button class="eye-btn" data-eye="Both">Both</button>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary btn-classify" id="btnClassify" disabled>
+                        <span class="btn-text">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                            Analyse Image
+                        </span>
+                        <span class="btn-loading" style="display:none">
+                            <span class="spinner"></span> Processing…
+                        </span>
+                    </button>
+
+                    <p class="upload-note">Images are processed locally and not stored permanently.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Page -->
+        <section class="page" id="page-results">
+            <div class="page-header">
+                <h1 class="page-title">Classification Result</h1>
+                <p class="page-subtitle" id="resultSubtitle">Automated DR severity assessment</p>
+            </div>
+
+            <div class="results-layout">
+                <!-- Grade card -->
+                <div class="result-grade-card glass-card" id="gradeCard">
+                    <div class="grade-badge" id="gradeBadge">
+                        <span class="grade-number" id="gradeNumber">—</span>
+                    </div>
+                    <div class="grade-info">
+                        <div class="grade-label" id="gradeLabel">—</div>
+                        <div class="grade-confidence">
+                            Confidence: <span id="gradeConfidence">—</span>
+                        </div>
+                    </div>
+                    <div class="recommendation-box" id="recommendationBox">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <span id="recommendationText">—</span>
+                    </div>
+                </div>
+
+                <!-- Confidence bars -->
+                <div class="glass-card confidence-card">
+                    <h3 class="chart-title">Grade Probabilities</h3>
+                    <div class="confidence-bars" id="confidenceBars"></div>
+                </div>
+
+                <!-- Images -->
+                <div class="glass-card images-card">
+                    <h3 class="chart-title">Image Analysis</h3>
+                    <div class="images-compare">
+                        <div class="img-col">
+                            <p class="img-label">Preprocessed</p>
+                            <img id="resultOriginal" class="result-img" alt="Preprocessed fundus" />
+                        </div>
+                        <div class="img-col">
+                            <p class="img-label">Grad-CAM Heatmap</p>
+                            <img id="resultHeatmap" class="result-img" alt="Grad-CAM activation map" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="result-actions glass-card">
+                    <button class="btn-primary" id="btnNewScan">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        New Scan
+                    </button>
+                    <button class="btn-secondary" id="btnViewHistory">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 3h18v4H3z" />
+                            <path d="M3 9h18v4H3z" />
+                            <path d="M3 15h18v4H3z" />
+                        </svg>
+                        View History
+                    </button>
+                    <button class="btn-secondary" id="btnPrint" onclick="window.print()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 6 2 18 2 18 9" />
+                            <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+                            <rect x="6" y="14" width="12" height="8" />
+                        </svg>
+                        Print Report
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- History Page -->
+        <section class="page" id="page-history">
+            <div class="page-header">
+                <h1 class="page-title">Classification History</h1>
+                <p class="page-subtitle">All past DR screening records</p>
+            </div>
+
+            <div class="table-toolbar glass-card">
+                <input class="form-control search-input" id="historySearch" type="text"
+                    placeholder="🔍 Search by patient name or grade…" />
+                <div class="filter-btns" id="gradeFilter">
+                    <button class="filter-btn active" data-grade="all">All</button>
+                    <button class="filter-btn" data-grade="0">No DR</button>
+                    <button class="filter-btn" data-grade="1">Mild</button>
+                    <button class="filter-btn" data-grade="2">Moderate</button>
+                    <button class="filter-btn" data-grade="3">Severe</button>
+                    <button class="filter-btn" data-grade="4">PDR</button>
+                </div>
+                <button class="btn-secondary" id="btnExportCSV">Export CSV</button>
+            </div>
+
+            <div class="table-wrap glass-card">
+                <table class="data-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Eye</th>
+                            <th>Grade</th>
+                            <th>Confidence</th>
+                            <th>Date &amp; Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+                <div class="table-empty" id="historyEmpty" style="display:none">No records found.</div>
+            </div>
+        </section>
+
+        <!-- Patients Page -->
+        <section class="page" id="page-patients">
+            <div class="page-header">
+                <h1 class="page-title">Patient Management</h1>
+                <p class="page-subtitle">Register and manage patient records</p>
+            </div>
+
+            <div class="patients-layout">
+                <!-- Add patient form -->
+                <div class="glass-card add-patient-card">
+                    <h3 class="form-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <line x1="19" y1="8" x2="19" y2="14" />
+                            <line x1="22" y1="11" x2="16" y2="11" />
+                        </svg>
+                        Add New Patient
+                    </h3>
+
+                    <div class="form-group">
+                        <label class="form-label" for="pName">Full Name *</label>
+                        <input class="form-control" id="pName" type="text" placeholder="Patient full name" />
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="pAge">Age</label>
+                            <input class="form-control" id="pAge" type="number" min="1" max="120" placeholder="Years" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pGender">Gender</label>
+                            <select class="form-control" id="pGender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pDiabetes">Diabetes Duration (years)</label>
+                        <input class="form-control" id="pDiabetes" type="number" min="0"
+                            placeholder="Years since diagnosis" />
+                    </div>
+                    <button class="btn-primary" id="btnAddPatient">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Register Patient
+                    </button>
+                </div>
+
+                <!-- Patients list -->
+                <div class="glass-card patients-list-card">
+                    <h3 class="chart-title">Registered Patients</h3>
+                    <div class="patient-cards-grid" id="patientCardsGrid"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Page -->
+        <section class="page" id="page-about">
+            <div class="page-header">
+                <h1 class="page-title">About RetinaAI</h1>
+                <p class="page-subtitle">Deep learning for automated Diabetic Retinopathy diagnosis</p>
+            </div>
+
+            <div class="about-grid">
+                <div class="glass-card about-card">
+                    <div class="about-icon teal">🧠</div>
+                    <h3>Deep Learning Classifier</h3>
+                    <p>Uses an <strong>EfficientNet-B4</strong> architecture pre-trained on ImageNet and fine-tuned on
+                        the EyePACS and APTOS-2019 datasets (88,000+ retinal images) for 5-class DR grading.</p>
+                </div>
+                <div class="glass-card about-card">
+                    <div class="about-icon purple">🔬</div>
+                    <h3>Grad-CAM Visualisation</h3>
+                    <p>Gradient-weighted Class Activation Mapping highlights the retinal regions (microaneurysms,
+                        exudates, neovascularisation) that most influenced the model's decision.</p>
+                </div>
+                <div class="glass-card about-card">
+                    <div class="about-icon orange">📊</div>
+                    <h3>Severity Grading Scale</h3>
+                    <p>Follows the <strong>International Clinical Diabetic Retinopathy (ICDR)</strong> 5-point scale:
+                        Grade 0 (No DR) through Grade 4 (Proliferative DR), matching clinical practice guidelines.</p>
+                </div>
+                <div class="glass-card about-card">
+                    <div class="about-icon green">✅</div>
+                    <h3>Clinical Performance</h3>
+                    <p>The model achieves <strong>AUC-ROC 0.97</strong> for referable vs. non-referable DR detection on
+                        the MESSIDOR-2 benchmark, comparable to expert ophthalmologists.</p>
+                </div>
+            </div>
+
+            <div class="glass-card severity-table-card">
+                <h3 class="chart-title">DR Severity Reference</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Grade</th>
+                            <th>Label</th>
+                            <th>Key Features</th>
+                            <th>Recommended Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="grade-pill g0">0</span></td>
+                            <td>No DR</td>
+                            <td>No abnormalities</td>
+                            <td>Annual routine screening</td>
+                        </tr>
+                        <tr>
+                            <td><span class="grade-pill g1">1</span></td>
+                            <td>Mild NPDR</td>
+                            <td>Microaneurysms only</td>
+                            <td>12-month follow-up</td>
+                        </tr>
+                        <tr>
+                            <td><span class="grade-pill g2">2</span></td>
+                            <td>Moderate NPDR</td>
+                            <td>Dot/blot haemorrhages, exudates</td>
+                            <td>Refer within 6 months</td>
+                        </tr>
+                        <tr>
+                            <td><span class="grade-pill g3">3</span></td>
+                            <td>Severe NPDR</td>
+                            <td>4-2-1 rule, IRMA</td>
+                            <td>Refer within 1 month</td>
+                        </tr>
+                        <tr>
+                            <td><span class="grade-pill g4">4</span></td>
+                            <td>Proliferative DR</td>
+                            <td>Neovascularisation, vitreous haemorrhage</td>
+                            <td>URGENT referral</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/upload.js"></script>
+    <script src="js/results.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/patients.js"></script>
+</body>
+
+</html>
